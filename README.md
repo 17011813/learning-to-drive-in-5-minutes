@@ -14,57 +14,66 @@ Level-0          | Level-1
 [Download VAE](https://drive.google.com/open?id=1n7FosFA0hALhuESf1j1yg-hERCnfVc4b) |  [Download VAE](https://drive.google.com/open?id=1hfQNAvVp2QmbmTLklWt2MxtAjrlisr2B)
 [Download pretrained agent](https://drive.google.com/open?id=10Hgd5BKfn1AmmVdLlNcDll6yXqVkujoq) | [Download pretrained agent](https://drive.google.com/open?id=104tlsIrtOTVxJ1ZLoTpBDzK4-DRTA5et)
 
-Note: the pretrained agents must be saved in `logs/sac/` folder (you need to pass `--exp-id 6` (index of the folder) to use the pretrained agent).
+Note: pretrained agents는 `logs/sac/` 폴더에 넣어주어야 합니다. 없으면 생성! (you need to pass `--exp-id 6` (index of the folder) to use the pretrained agent). 그리고 VAE Level 0, VAE Level 1은 `logs` 폴더에 넣어줍니다.
 
-
+저는 기본 python이 2.7이 깔려있어 python3로 pip3를 사용하여 진행하였습니다.
 ## Quick Start
-
+저는 리눅스 환경에서 진행하였습니다.
 0. Download simulator [here](https://drive.google.com/open?id=1h2VfpGHlZetL5RAPZ79bhDRkvlfuB4Wb) or build it from [source](https://github.com/tawnkramer/sdsandbox/tree/donkey)
-1. Install dependencies (cf requirements.txt)
+1. Install dependencies (pip3 install -r requirements.txt)
 2. (optional but recommended) Download pre-trained VAE: [VAE Level 0](https://drive.google.com/open?id=1n7FosFA0hALhuESf1j1yg-hERCnfVc4b) [VAE Level 1](https://drive.google.com/open?id=1hfQNAvVp2QmbmTLklWt2MxtAjrlisr2B)
 3. Train a control policy for 5000 steps using Soft Actor-Critic (SAC)
 
 ```
-python train.py --algo sac -vae path-to-vae.pkl -n 5000
+python3 train.py --algo sac -vae path-to-vae.pkl -n 5000
 ```
+위의 path-to-vae.pkl 의 경우 VAE 0 미리 다운받은 거로 하려면 logs/vae-level-0-dim-32.pkl로 설정해주면 됩니다.
 
 4. Enjoy trained agent for 2000 steps
 
 ```
-python enjoy.py --algo sac -vae path-to-vae.pkl --exp-id 0 -n 2000
+python3 enjoy.py --algo sac -vae path-to-vae.pkl --exp-id 0 -n 2000
 ```
+위의 path-to-vae.pkl 의 경우 VAE 0 미리 다운받은 거로 하려면 logs/vae-level-0-dim-32.pkl로 설정해주면 됩니다.
 
 To train on a different level, you need to change `LEVEL = 0` to `LEVEL = 1` in `config.py`
 
 ## Train the Variational AutoEncoder (VAE)
-
+여기서부터는 처음부터 직접 하는 방법입니다.
 0. Collect images using the teleoperation mode:
-
+첫번째 단계로 원격 조종모드 방향키로 직접 운전하며 도로 image를 충분히 모은다.(space bar로 녹화모드 변경 가능) 맵을 한번 이상 완주하며 충분히 모아주세요.
 ```
-python -m teleop.teleop_client --record-folder path-to-record/folder/
+python3 -m teleop.teleop_client --record-folder path-to-record/folder/
 ```
 
 1. Train a VAE:
+위에서 모은 image를 이용해서 VAE 모델에 넣어서 학습시킵니다. 2시간 정도 걸립니다.
 ```
-python -m vae.train --n-epochs 50 --verbose 0 --z-size 64 -f path-to-record/folder/
+python3 -m vae.train --n-epochs 50 --verbose 0 --z-size 64 -f path-to-record/folder/
 ```
 
 ## Train in Teleoparation Mode
-
+위의 코드까지 마치면 logs폴더에 vae.pkl이 생성됩니다.
 ```
-python train.py --algo sac -vae logs/vae.pkl -n 5000 --teleop
+python3 train.py --algo sac -vae logs/vae.pkl -n 5000 --teleop
 ```
 
 ## Test in Teleoparation Mode
+여기서 --exp-id는 여러개의 폴더 중에 0번째 폴더안의 vae버전을 사용하겠다는 뜻입니다. 나중에 여러번 학습을 해 vae.pkl이 6번째 폴더까지 있고 6번째 폴더안의 vae.pkl을 사용하고 싶다면 --exp-id 6이라고 써주면 됩니다.
 
+근데 저는 원래 올라와있는 이 코드 말고
 ```
-python -m teleop.teleop_client --algo sac -vae logs/vae.pkl --exp-id 0
+python3 -m teleop.teleop_client --algo sac -vae logs/vae.pkl --exp-id 0
+```
+우선 저는 다운 받은 pretrained agent는 위의 폴더에 그냥 그대로 두고 logs폴더에 있는 vae-level-0-dim-32.pkl을 연결해주어야 에러 없이 잘 진행됩니다.
+```
+python3 -m teleop.teleop_client --algo sac -vae logs/vae-level-0-dim-32.pkl --exp-id 0
 ```
 
 ## Explore Latent Space
-
+코드 실행 시 latent 이미지가 나옵니다.
 ```
-python -m vae.enjoy_latent -vae logs/level-0/vae-8.pkl
+python3 -m vae.enjoy_latent -vae logs/level-0/vae-8.pkl
 ```
 
 ## Reproducing Results
