@@ -75,9 +75,11 @@ python3 -m teleop.teleop_client --algo sac -vae logs/vae-level-0-dim-32.pkl --ex
 
 ## Explore Latent Space
 
-vae.enjoy_latent 코드에 ```
+vae.enjoy_latent 코드에 
+```
 parser.add_argument('--exp-id',help='Experiment ID (-1: no exp folder, 0: latest)',default=0,type=int)
-```를 main에 추가해줍니다. 몇번째 폴더로 연결할지를 결정하기 위해서 입니다.
+```
+를 main에 추가해줍니다. 몇번째 폴더로 연결할지를 결정하기 위해서 입니다.
 
 ```
 python3 -m vae.enjoy_latent -vae logs/vae.pkl --exp-id 7
