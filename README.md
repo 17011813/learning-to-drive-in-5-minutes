@@ -1,6 +1,6 @@
 # Learning to Drive Smoothly in Minutes
 
-Learning to drive smoothly in minutes, using a reinforcement learning algorithm -- Soft Actor-Critic (SAC) -- and a Variational AutoEncoder (VAE) in the Donkey Car simulator.
+Learning to drive smoothly in minutes, using a reinforcement learning algorithm <span style="color:red">Soft Actor-Critic (SAC)</span> and <span style="color:red">Variational AutoEncoder (VAE)</span> in the Donkey Car simulator.
 
 
 Blog post on Medium: [link](https://medium.com/@araffin/learning-to-drive-smoothly-in-minutes-450a7cdb35f4)
@@ -19,6 +19,7 @@ Note: pretrained agents는 `logs/sac/` 폴더에 넣어주어야 합니다. 없�
 저는 기본 python이 2.7이 깔려있어 python3로 pip3를 사용하여 진행하였습니다.
 ## Quick Start
 저는 리눅스 환경에서 진행하였습니다.
+
 0. Download simulator [here](https://drive.google.com/open?id=1h2VfpGHlZetL5RAPZ79bhDRkvlfuB4Wb) or build it from [source](https://github.com/tawnkramer/sdsandbox/tree/donkey)
 1. Install dependencies (pip3 install -r requirements.txt)
 2. (optional but recommended) Download pre-trained VAE: [VAE Level 0](https://drive.google.com/open?id=1n7FosFA0hALhuESf1j1yg-hERCnfVc4b) [VAE Level 1](https://drive.google.com/open?id=1hfQNAvVp2QmbmTLklWt2MxtAjrlisr2B)
@@ -41,7 +42,7 @@ To train on a different level, you need to change `LEVEL = 0` to `LEVEL = 1` in 
 ## Train the Variational AutoEncoder (VAE)
 여기서부터는 처음부터 직접 하는 방법입니다.
 0. Collect images using the teleoperation mode:
-첫번째 단계로 원격 조종모드 방향키로 직접 운전하며 도로 image를 충분히 모은다.(space bar로 녹화모드 변경 가능) 맵을 한번 이상 완주하며 충분히 모아주세요.
+첫번째 단계로 원격 조종모드 방향키로 직접 운전하며 도로 image를 충분히 모다.(space bar로 녹화모드 변경 가능) 맵을 한번 이상 완주하며 충분히 모아주세요.
 ```
 python3 -m teleop.teleop_client --record-folder path-to-record/folder/
 ```
@@ -58,22 +59,34 @@ python3 -m vae.train --n-epochs 50 --verbose 0 --z-size 64 -f path-to-record/fol
 python3 train.py --algo sac -vae logs/vae.pkl -n 5000 --teleop
 ```
 
-## Test in Teleoparation Mode
+## Test in Teleoparation Mode 원격 조종
 여기서 --exp-id는 여러개의 폴더 중에 0번째 폴더안의 vae버전을 사용하겠다는 뜻입니다. 나중에 여러번 학습을 해 vae.pkl이 6번째 폴더까지 있고 6번째 폴더안의 vae.pkl을 사용하고 싶다면 --exp-id 6이라고 써주면 됩니다.
 
-근데 저는 원래 올라와있는 이 코드 말고
+근데 저는 VAE를 학습시켜 vae.pkl을 logs폴더안에 얻었고, logs/sac/폴더 안에 DonkeyVae-v0-level-0_7 로 7번째 폴더를 얻었기 때문에
 ```
-python3 -m teleop.teleop_client --algo sac -vae logs/vae.pkl --exp-id 0
+python3 -m teleop.teleop_client --algo sac -vae logs/vae.pkl --exp-id 7
 ```
-우선 저는 다운 받은 pretrained agent는 위의 폴더에 그냥 그대로 두고 logs폴더에 있는 vae-level-0-dim-32.pkl을 연결해주어야 에러 없이 잘 진행됩니다.
+로 실행시켜줍니다.
+
+만약 다운 받은걸로 실행하고 싶다면, pretrained agent는 logs/sac <span style="color:red">폴더에 그냥 그대로 두고</span> logs폴더에 있는 vae-level-0-dim-32.pkl을 연결해주어야 에러 없이 잘 진행됩니다.
 ```
-python3 -m teleop.teleop_client --algo sac -vae logs/vae-level-0-dim-32.pkl --exp-id 0
+python3 -m teleop.teleop_client --algo sac -vae logs/vae-level-0-dim-32.pkl --exp-id 6
 ```
 
 ## Explore Latent Space
-코드 실행 시 latent 이미지가 나옵니다.
+
+vae.enjoy_latent 코드에 ```
+parser.add_argument('--exp-id',help='Experiment ID (-1: no exp folder, 0: latest)',default=0,type=int)
+```를 main에 추가해줍니다. 몇번째 폴더로 연결할지를 결정하기 위해서 입니다.
+
 ```
-python3 -m vae.enjoy_latent -vae logs/level-0/vae-8.pkl
+python3 -m vae.enjoy_latent -vae logs/vae.pkl --exp-id 7
+```
+코드 실행 시 latent 이미지가 나옵니다.
+
+만약 다운 받은걸로 실행하고 싶다면, pretrained agent는 logs/sac <span style="color:red">폴더에 그냥 그대로 두고</span> logs폴더에 있는 vae-level-0-dim-32.pkl을 연결해주어야 에러 없이 잘 진행됩니다.
+```
+python3 -m vae.enjoy_latent -vae logs/vae-level-0-dim-32.pkl --exp-id 6
 ```
 
 ## Reproducing Results
@@ -85,9 +98,9 @@ To reproduce the results shown in the video, you have to check different values 
 `config.py`:
 
 ```python
-MAX_STEERING_DIFF = 0.15 # 0.1 for very smooth control, but it requires more steps
-MAX_THROTTLE = 0.6 # MAX_THROTTLE = 0.5 is fine, but we can go faster
-MAX_CTE_ERROR = 2.0 # only used in normal mode, set it to 10.0 when using teleoperation mode
+MAX_STEERING_DIFF = 0.15 # 0.1로 하면 더 부드러운 조절 가능하지만 더 많은 시간 소요
+MAX_THROTTLE = 0.6 # MAX_THROTTLE = 0.5도 괜찮지만, 0.6으로 더 빠르게 주행
+MAX_CTE_ERROR = 2.0 # normal mode에서만 2.0, teleoperation mode에서는 10.0
 LEVEL = 0
 ```
 
@@ -108,13 +121,13 @@ python train.py --algo sac -n 8000 -vae logs/vae-level-0-dim-32.pkl --teleop
 
 ### Level 1
 
-Note: only teleoperation mode is available for level 1
+Note: level 1에서는 teleoperation mode만 가능
 
 `config.py`:
 
 ```python
 MAX_STEERING_DIFF = 0.15
-MAX_THROTTLE = 0.5 # MAX_THROTTLE = 0.6 can work but it's harder to train due to the sharpest turn
+MAX_THROTTLE = 0.5 # 여기서는 커브가 많이 급해서 0.6은 좀 과합니다.
 LEVEL = 1
 ```
 
@@ -123,7 +136,7 @@ Train in teleoperation mode, it takes ~10 minutes:
 python train.py --algo sac -n 15000 -vae logs/vae-level-1-dim-64.pkl --teleop
 ```
 
-Note: although the size of the VAE is different between level 0 and 1, this is not an important factor.
+Note: VAE의 size가 level 0과 1에서 많이 다르지만 크게 영향 없습니다.
 
 ## Record a Video of the on-board camera
 
@@ -131,31 +144,3 @@ You need a trained model. For instance, for recording 1000 steps with the last t
 ```
 python -m utils.record_video --algo sac --vae-path logs/level-0/vae-32-2.pkl -n 1000
 ```
-
-## Citing the Project
-
-To cite this repository in publications:
-
-```
-@misc{drive-smoothly-in-minutes,
-  author = {Raffin, Antonin and Sokolkov, Roma},
-  title = {Learning to Drive Smoothly in Minutes},
-  year = {2019},
-  publisher = {GitHub},
-  journal = {GitHub repository},
-  howpublished = {\url{https://github.com/araffin/learning-to-drive-in-5-minutes/}},
-}
-```
-
-## Credits
-
-Related Paper: ["Learning to Drive in a Day"](https://arxiv.org/pdf/1807.00412.pdf).
-
-- [r7vme](https://github.com/r7vme/learning-to-drive-in-a-day) Author of the original implementation
-- [Wayve.ai](https://wayve.ai) for idea and inspiration.
-- [Tawn Kramer](https://github.com/tawnkramer) for Donkey simulator and Donkey Gym.
-- [Stable-Baselines](https://github.com/hill-a/stable-baselines) for DDPG/SAC and PPO implementations.
-- [RL Baselines Zoo](https://github.com/araffin/rl-baselines-zoo) for training/enjoy scripts.
-- [S-RL Toolbox](https://github.com/araffin/robotics-rl-srl) for the data loader
-- [Racing robot](https://github.com/sergionr2/RacingRobot) for the teleoperation
-- [World Models Experiments](https://github.com/hardmaru/WorldModelsExperiments) for VAE implementation.
