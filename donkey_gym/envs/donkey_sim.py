@@ -256,7 +256,7 @@ class DonkeyUnitySimHandler(IMesgHandler):
         image = image[:, :, ::-1]
         self.image_array = image
         # Here resize is not useful for now (the image have already the right dimension)
-        # self.image_array = cv2.resize(image, (IMAGE_WIDTH, IMAGE_HEIGHT))
+        self.image_array = cv2.resize(image, (IMAGE_WIDTH, IMAGE_HEIGHT))
 
         # name of object we just hit. "none" if nothing.
         # NOTE: obstacle detection disabled
